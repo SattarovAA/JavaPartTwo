@@ -8,7 +8,6 @@ import org.jpt.util.Producer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -43,15 +42,15 @@ public class DemoImpl implements Demo {
                 pool.submit(consumerThread);
             }
             producerThread.start();
-
+        } finally {
+            if (pool != null) pool.shutdown();
+        }
+        while (!pool.isTerminated()) {
             try {
-                while (pool.awaitTermination(1, TimeUnit.SECONDS)) {
-                }
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        } finally {
-            if (pool != null) pool.shutdown();
         }
         log.info("Demo ends.");
     }

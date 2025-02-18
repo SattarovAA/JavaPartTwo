@@ -67,18 +67,21 @@ public class ConcurrentCircularBuffer<E> {
      * @return {@code false} if buffer is full
      */
     public boolean offer(E element) {
+        if (isFull()) {
+            return false;
+        }
         lock.lock();
         try {
-            if (!isFull()) {
-                int nextWriteSeq = writeSequence + 1;
-                data[nextWriteSeq % capacity] = element;
-                writeSequence++;
-                return true;
+            if (isFull()) {
+                return false;
             }
+            int nextWriteSeq = writeSequence + 1;
+            data[nextWriteSeq % capacity] = element;
+            writeSequence++;
+            return true;
         } finally {
             lock.unlock();
         }
-        return false;
     }
 
     /**
@@ -89,17 +92,20 @@ public class ConcurrentCircularBuffer<E> {
      */
     @SuppressWarnings("unchecked")
     public E poll() {
+        if (isEmpty()) {
+            return null;
+        }
         lock.lock();
         try {
-            if (!isEmpty()) {
-                E nextValue = (E) data[readSequence % capacity];
-                readSequence++;
-                return nextValue;
+            if (isEmpty()) {
+                return null;
             }
+            E nextValue = (E) data[readSequence % capacity];
+            readSequence++;
+            return nextValue;
         } finally {
             lock.unlock();
         }
-        return null;
     }
 
     /**
